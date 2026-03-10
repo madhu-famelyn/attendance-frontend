@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import "./Dashboard.css";
 import DetailsSidebar from "../DetailsSidebar/DetailsSidebar";
 import { FaUsers, FaClock } from "react-icons/fa";
@@ -10,21 +10,12 @@ const AttendanceDashboard = () => {
   const [totalWorkingHours, setTotalWorkingHours] = useState(0);
   const [employeesPresentCount, setEmployeesPresentCount] = useState(0);
 
-  useEffect(() => {
-    fetch("http://127.0.0.1:8000/attendance/today")
-      .then((res) => res.json())
-      .then((data) => {
-        setAttendanceData(data);
-        calculateDashboardStats(data);
-      });
-  }, []);
-
   const convertUTCtoIST = (time) => {
     if (!time) return null;
     return new Date(time + "Z");
   };
 
-  const calculateDashboardStats = (data) => {
+  const calculateDashboardStats = useCallback((data) => {
 
     let present = 0;
     let total = 0;
@@ -35,6 +26,8 @@ const AttendanceDashboard = () => {
       const checkOut = item.check_out_time
         ? convertUTCtoIST(item.check_out_time)
         : new Date();
+
+      if (!checkIn) return;
 
       const diff = checkOut - checkIn;
       const hours = diff / (1000 * 60 * 60);
@@ -50,7 +43,23 @@ const AttendanceDashboard = () => {
     setEmployeesPresentCount(present);
     setTotalWorkingHours(total.toFixed(1));
 
-  };
+  }, []);
+
+  const fetchAttendance = useCallback(async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/attendance/today");
+      const data = await res.json();
+
+      setAttendanceData(data);
+      calculateDashboardStats(data);
+    } catch (error) {
+      console.error("Failed to fetch attendance:", error);
+    }
+  }, [calculateDashboardStats]);
+
+  useEffect(() => {
+    fetchAttendance();
+  }, [fetchAttendance]);
 
   const formatTimeIST = (time) => {
 
@@ -70,6 +79,8 @@ const AttendanceDashboard = () => {
   const calculateRowHours = (item) => {
 
     const checkIn = convertUTCtoIST(item.check_in_time);
+
+    if (!checkIn) return "-";
 
     const checkOut = item.check_out_time
       ? convertUTCtoIST(item.check_out_time)
@@ -148,7 +159,7 @@ const AttendanceDashboard = () => {
                 <td>{formatTimeIST(item.check_in_time)}</td>
                 <td>{formatTimeIST(item.check_out_time)}</td>
                 <td>{calculateRowHours(item)}</td>
-                <td>{item.check_in_gps}</td>
+                <td>{item.check_in_gps || "-"}</td>
 
               </tr>
 

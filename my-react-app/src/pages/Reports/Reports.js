@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import "./Reports.css";
 import * as XLSX from "xlsx";
@@ -8,18 +8,15 @@ const AttendanceReport = () => {
   const { employee_id } = useParams();
 
   const [attendance, setAttendance] = useState([]);
-
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
   const [rangeType, setRangeType] = useState("month");
 
-  // =====================================
-  // UTC → IST
-  // =====================================
+  // ===============================
+  // TIME FORMAT
+  // ===============================
 
   const formatIST = (time) => {
-
     if (!time) return "-";
 
     const date = new Date(time + "Z");
@@ -30,11 +27,9 @@ const AttendanceReport = () => {
       minute: "2-digit",
       hour12: true
     });
-
   };
 
   const formatDateIST = (time) => {
-
     if (!time) return "-";
 
     const date = new Date(time + "Z");
@@ -42,12 +37,11 @@ const AttendanceReport = () => {
     return date.toLocaleDateString("en-IN", {
       timeZone: "Asia/Kolkata"
     });
-
   };
 
-  // =====================================
+  // ===============================
   // WORKING HOURS
-  // =====================================
+  // ===============================
 
   const calculateHours = (checkIn, checkOut) => {
 
@@ -64,42 +58,40 @@ const AttendanceReport = () => {
 
   };
 
-  // =====================================
-  // FETCH DATA
-  // =====================================
+  // ===============================
+  // FETCH ATTENDANCE
+  // ===============================
 
-  const fetchAttendance = () => {
+  const fetchAttendance = useCallback(async () => {
 
-    let url = `http://127.0.0.1:8000/attendance/user/${employee_id}`;
+    try {
 
-    if (startDate && endDate) {
+      let url = `http://127.0.0.1:8000/attendance/user/${employee_id}`;
 
-      url += `?start_date=${startDate}&end_date=${endDate}`;
+      if (startDate && endDate) {
+        url += `?start_date=${startDate}&end_date=${endDate}`;
+      }
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      setAttendance(data);
+
+    } catch (error) {
+
+      console.error("Attendance fetch failed:", error);
 
     }
 
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => setAttendance(data))
-      .catch((err) => console.error(err));
-
-  };
+  }, [employee_id, startDate, endDate]);
 
   useEffect(() => {
-
-    applyPreset(rangeType);
-
-  }, [employee_id]);
-
-  useEffect(() => {
-
     fetchAttendance();
+  }, [fetchAttendance]);
 
-  }, [startDate, endDate]);
-
-  // =====================================
-  // DATE PRESETS
-  // =====================================
+  // ===============================
+  // DATE PRESET
+  // ===============================
 
   const applyPreset = (type) => {
 
@@ -108,29 +100,22 @@ const AttendanceReport = () => {
     const today = new Date();
 
     let start;
-    let end = today;
+    let end = new Date();
 
     if (type === "day") {
 
       start = today;
 
-    }
-
-    if (type === "week") {
+    } else if (type === "week") {
 
       const first = today.getDate() - today.getDay();
-
       start = new Date(today.setDate(first));
 
-    }
-
-    if (type === "month") {
+    } else if (type === "month") {
 
       start = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    }
-
-    if (type === "custom") {
+    } else if (type === "custom") {
 
       return;
 
@@ -141,29 +126,27 @@ const AttendanceReport = () => {
 
   };
 
-  // =====================================
+  // Initialize default range
+  useEffect(() => {
+    applyPreset("month");
+  }, [employee_id]);
+
+  // ===============================
   // EXPORT EXCEL
-  // =====================================
+  // ===============================
 
   const exportToExcel = () => {
 
     const exportData = attendance.map((item) => ({
-
       Date: formatDateIST(item.check_in_time),
-
       "Check In Time": formatIST(item.check_in_time),
-
       "Check In Location": item.check_in_gps || "-",
-
       "Check Out Time": formatIST(item.check_out_time),
-
       "Check Out Location": item.check_out_gps || "-",
-
       "Working Hours": calculateHours(
         item.check_in_time,
         item.check_out_time
       )
-
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -185,11 +168,8 @@ const AttendanceReport = () => {
       <div className="report-header">
 
         <div>
-
           <h1>Attendance Reports</h1>
-
           <p>Employee attendance history</p>
-
         </div>
 
         <button
@@ -201,23 +181,17 @@ const AttendanceReport = () => {
 
       </div>
 
-
       {/* EMPLOYEE */}
 
       <div className="employee-select">
 
         {attendance.length > 0 && (
-
           <div className="employee-pill">
-
             {attendance[0].user_name}
-
           </div>
-
         )}
 
       </div>
-
 
       {/* DATE FILTERS */}
 
@@ -253,7 +227,6 @@ const AttendanceReport = () => {
 
       </div>
 
-
       {/* CUSTOM DATE RANGE */}
 
       {rangeType === "custom" && (
@@ -276,7 +249,6 @@ const AttendanceReport = () => {
 
       )}
 
-
       {/* TABLE */}
 
       <div className="table-container">
@@ -286,14 +258,12 @@ const AttendanceReport = () => {
           <thead>
 
             <tr>
-
               <th>Date</th>
               <th>Check In Time</th>
               <th>Check In Location</th>
               <th>Check Out Time</th>
               <th>Check Out Location</th>
               <th>Working Hours</th>
-
             </tr>
 
           </thead>
@@ -313,13 +283,9 @@ const AttendanceReport = () => {
                 <tr key={item.id}>
 
                   <td>{formatDateIST(item.check_in_time)}</td>
-
                   <td>{formatIST(item.check_in_time)}</td>
-
                   <td>{item.check_in_gps || "-"}</td>
-
                   <td>{formatIST(item.check_out_time)}</td>
-
                   <td>{item.check_out_gps || "-"}</td>
 
                   <td>
