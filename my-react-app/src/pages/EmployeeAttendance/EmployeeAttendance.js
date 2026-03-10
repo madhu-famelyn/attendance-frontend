@@ -20,6 +20,9 @@ export default function EmployeeAttendance() {
 
   const { employee, token } = useContext(EmployeeContext);
 
+  const officeLatitude = Number(employee?.office_latitude);
+  const officeLongitude = Number(employee?.office_longitude);
+
   const [locationName, setLocationName] = useState("Fetching location...");
   const [cameraActive, setCameraActive] = useState(true);
   const [attendanceToday, setAttendanceToday] = useState(null);
@@ -27,9 +30,42 @@ export default function EmployeeAttendance() {
   const [checkingIn, setCheckingIn] = useState(false);
   const [checkingOut, setCheckingOut] = useState(false);
 
-  // =====================================
-  // Fetch Today's Attendance
-  // =====================================
+  const [isLocationLoaded, setIsLocationLoaded] = useState(false);
+  const [isInOffice, setIsInOffice] = useState(false);
+
+  const OFFICE_RADIUS = 500;
+
+  // ===============================
+  // Distance Calculation
+  // ===============================
+
+  const getDistanceMeters = (lat1, lon1, lat2, lon2) => {
+
+    const R = 6371e3;
+    const toRad = (deg) => (deg * Math.PI) / 180;
+
+    const φ1 = toRad(lat1);
+    const φ2 = toRad(lat2);
+
+    const Δφ = toRad(lat2 - lat1);
+    const Δλ = toRad(lon2 - lon1);
+
+    const a =
+      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+      Math.cos(φ1) *
+        Math.cos(φ2) *
+        Math.sin(Δλ / 2) *
+        Math.sin(Δλ / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+
+  };
+
+  // ===============================
+  // Fetch Attendance
+  // ===============================
 
   useEffect(() => {
 
@@ -46,9 +82,9 @@ export default function EmployeeAttendance() {
 
   }, [employee, token]);
 
-  // =====================================
+  // ===============================
   // Camera Control
-  // =====================================
+  // ===============================
 
   const stopCamera = () => {
 
@@ -67,7 +103,6 @@ export default function EmployeeAttendance() {
   useEffect(() => {
 
     setCameraActive(true);
-
     return () => stopCamera();
 
   }, []);
@@ -96,80 +131,86 @@ export default function EmployeeAttendance() {
 
   }, []);
 
-  // =====================================
-  // Get Exact Location (Latitude + Longitude)
-  // =====================================
+  // ===============================
+  // GPS Location
+  // ===============================
 
   useEffect(() => {
 
     if (!navigator.geolocation) {
 
-      setLocationName("Location not supported");
+      setLocationName("Geolocation not supported");
       return;
 
     }
 
-navigator.geolocation.getCurrentPosition(
-  async (position) => {
+    const watchId = navigator.geolocation.watchPosition(
 
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
+      (position) => {
 
-    console.log("Latitude:", lat);
-    console.log("Longitude:", lon);
-    console.log("Accuracy:", position.coords.accuracy);
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
 
-    try {
+        const distance = getDistanceMeters(
+          lat,
+          lon,
+          officeLatitude,
+          officeLongitude
+        );
 
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
-        {
-          headers: {
-            "User-Agent": "employee-attendance-app"
-          }
+        console.log("User:", lat, lon);
+        console.log("Office:", officeLatitude, officeLongitude);
+        console.log("Distance:", distance);
+
+        if (distance <= OFFICE_RADIUS) {
+
+          setLocationName("In Office");
+          setIsInOffice(true);
+
+        } else {
+
+          setLocationName("Outside Office");
+          setIsInOffice(false);
+
         }
-      );
 
-      const data = await response.json();
+        setIsLocationLoaded(true);
 
-      const shortLocation = data.display_name
-        ?.split(",")
-        .slice(0,4)
-        .join(",");
+      },
 
-      setLocationName(shortLocation || "Exact location not found");
+      () => {
 
-    } catch {
+        setLocationName("Enable location access");
 
-      setLocationName("Unable to fetch location");
+      },
 
-    }
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 10000
+      }
 
-  },
-  () => {
-    setLocationName("Location permission denied");
-  },
-  {
-    enableHighAccuracy: true,
-    timeout: 10000,
-    maximumAge: 0
-  }
-);
+    );
 
-  }, []);
+    return () => navigator.geolocation.clearWatch(watchId);
 
-  // =====================================
-  // Attendance Button State
-  // =====================================
+  }, [officeLatitude, officeLongitude]);
 
   const { alreadyCheckedIn, alreadyCheckedOut } =
     getAttendanceStatus(attendanceToday);
 
-  // =====================================
+  // ===============================
   // Check In
-  // =====================================
+  // ===============================
 
   const onCheckIn = async () => {
+
+    if (!isInOffice) {
+
+      alert("You are not in the office premises. Kindly reach office.");
+      return;
+
+    }
 
     if (checkingIn) return;
 
@@ -180,7 +221,7 @@ navigator.geolocation.getCurrentPosition(
       await handleCheckIn(
         webcamRef,
         employee,
-        locationName,
+        "In Office",
         token,
         setAttendanceToday
       );
@@ -193,11 +234,18 @@ navigator.geolocation.getCurrentPosition(
 
   };
 
-  // =====================================
+  // ===============================
   // Check Out
-  // =====================================
+  // ===============================
 
   const onCheckOut = async () => {
+
+    if (!isInOffice) {
+
+      alert("You are not in the office premises.");
+      return;
+
+    }
 
     if (checkingOut) return;
 
@@ -208,7 +256,7 @@ navigator.geolocation.getCurrentPosition(
       await handleCheckOut(
         webcamRef,
         employee,
-        locationName,
+        "In Office",
         token,
         setAttendanceToday
       );
@@ -220,10 +268,6 @@ navigator.geolocation.getCurrentPosition(
     }
 
   };
-
-  // =====================================
-  // Reports Navigation
-  // =====================================
 
   const handleViewReports = () => {
 
@@ -241,8 +285,6 @@ navigator.geolocation.getCurrentPosition(
 
         <h1 className="title">Employee Attendance</h1>
 
-        {/* Location */}
-
         <div className="location-box">
 
           <div className="location-title">
@@ -252,8 +294,6 @@ navigator.geolocation.getCurrentPosition(
           <p><strong>{locationName}</strong></p>
 
         </div>
-
-        {/* Camera */}
 
         <div className="camera-preview">
 
@@ -284,7 +324,7 @@ navigator.geolocation.getCurrentPosition(
 
         <button
           className="checkin-btn"
-          disabled={alreadyCheckedIn || checkingIn}
+          disabled={!isLocationLoaded || !isInOffice || alreadyCheckedIn || checkingIn}
           onClick={onCheckIn}
         >
 
@@ -302,7 +342,7 @@ navigator.geolocation.getCurrentPosition(
 
         <button
           className="checkout-btn"
-          disabled={!alreadyCheckedIn || alreadyCheckedOut || checkingOut}
+          disabled={!isLocationLoaded || !isInOffice || !alreadyCheckedIn || alreadyCheckedOut || checkingOut}
           onClick={onCheckOut}
         >
 
@@ -315,8 +355,6 @@ navigator.geolocation.getCurrentPosition(
             : "Logout / Check Out"}
 
         </button>
-
-        {/* Reports */}
 
         <button
           className="reports-btn"

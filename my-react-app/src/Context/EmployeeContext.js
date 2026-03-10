@@ -4,20 +4,33 @@ export const EmployeeContext = createContext();
 
 export const EmployeeProvider = ({ children }) => {
 
+  const storedEmployee = localStorage.getItem("employee");
+  const storedToken = localStorage.getItem("employeeToken");
+
   const [employee, setEmployee] = useState(
-    JSON.parse(localStorage.getItem("employee"))
+    storedEmployee ? JSON.parse(storedEmployee) : null
   );
 
-  const [token, setToken] = useState(
-    localStorage.getItem("employeeToken")
-  );
+  const [token, setToken] = useState(storedToken || null);
 
   const loginEmployee = (data) => {
 
-    setEmployee(data.employee);
+    const employeeData = {
+      id: data.employee.id,
+      name: data.employee.name,
+      email: data.employee.email,
+      role: data.employee.role,
+      expected_entry_time: data.employee.expected_entry_time,
+      expected_exit_time: data.employee.expected_exit_time,
+      office_latitude: data.employee.office_latitude,
+      office_longitude: data.employee.office_longitude,
+      image: data.employee.image
+    };
+
+    setEmployee(employeeData);
     setToken(data.access_token);
 
-    localStorage.setItem("employee", JSON.stringify(data.employee));
+    localStorage.setItem("employee", JSON.stringify(employeeData));
     localStorage.setItem("employeeToken", data.access_token);
   };
 
@@ -35,6 +48,11 @@ export const EmployeeProvider = ({ children }) => {
       value={{
         employee,
         token,
+
+        // Quick access helpers
+        officeLatitude: employee?.office_latitude || null,
+        officeLongitude: employee?.office_longitude || null,
+
         loginEmployee,
         logoutEmployee
       }}

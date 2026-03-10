@@ -17,7 +17,6 @@ const EmployeeLogin = () => {
   const handleLogin = async (e) => {
 
     e.preventDefault();
-
     setLoading(true);
 
     try {
@@ -32,16 +31,25 @@ const EmployeeLogin = () => {
 
       const data = response.data;
 
+      // Save employee in context
       loginEmployee(data);
 
-      console.log("Employee Login success", data);
+      // Console logs
+      console.log("Employee Login Success:", data.employee);
+
+      console.log("Office Latitude:", data.employee.office_latitude);
+      console.log("Office Longitude:", data.employee.office_longitude);
+
+      console.log(
+        "Office Location:",
+        `${data.employee.office_latitude}, ${data.employee.office_longitude}`
+      );
 
       navigate("/scan");
 
     } catch (error) {
 
       console.error("Login failed", error);
-
       alert("Invalid email or password");
 
     } finally {
