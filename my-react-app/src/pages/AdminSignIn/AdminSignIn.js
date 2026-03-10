@@ -21,7 +21,7 @@ const LoginPage = () => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/admin/login",
+        "https://attendance-backend-long-meadow-1623.fly.dev/admin/login",
         {
           email: email,
           password: password

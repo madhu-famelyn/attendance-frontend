@@ -5,7 +5,7 @@ export const fetchTodayAttendance = async (employeeId, token) => {
     const today = new Date().toISOString().split("T")[0];
 
     const res = await fetch(
-      `http://127.0.0.1:8000/attendance/user/${employeeId}?start_date=${today}&end_date=${today}`,
+      `https://attendance-backend-long-meadow-1623.fly.dev/attendance/user/${employeeId}?start_date=${today}&end_date=${today}`,
       {
         headers: {
           Authorization: `Bearer ${token}`

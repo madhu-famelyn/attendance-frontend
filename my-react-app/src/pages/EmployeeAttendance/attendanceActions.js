@@ -79,7 +79,7 @@ export const handleCheckIn = async (
     formData.append("check_in_photo", imageFile);
 
     const response = await fetch(
-      "http://127.0.0.1:8000/attendance/check-in",
+      "https://attendance-backend-long-meadow-1623.fly.dev/attendance/check-in",
       {
         method: "POST",
         headers: {
@@ -138,7 +138,7 @@ export const handleCheckOut = async (
     formData.append("check_out_photo", imageFile);
 
     const response = await fetch(
-      "http://127.0.0.1:8000/attendance/check-out",
+      "https://attendance-backend-long-meadow-1623.fly.dev/attendance/check-out",
       {
         method: "PUT",
         headers: {

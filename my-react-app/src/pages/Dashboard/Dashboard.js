@@ -47,7 +47,7 @@ const AttendanceDashboard = () => {
 
   const fetchAttendance = useCallback(async () => {
     try {
-      const res = await fetch("http://127.0.0.1:8000/attendance/today");
+      const res = await fetch("https://attendance-backend-long-meadow-1623.fly.dev/attendance/today");
       const data = await res.json();
 
       setAttendanceData(data);

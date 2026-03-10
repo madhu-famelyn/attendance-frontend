@@ -66,7 +66,7 @@ const AttendanceReport = () => {
 
     try {
 
-      let url = `http://127.0.0.1:8000/attendance/user/${employee_id}`;
+      let url = `https://attendance-backend-long-meadow-1623.fly.dev/attendance/user/${employee_id}`;
 
       if (startDate && endDate) {
         url += `?start_date=${startDate}&end_date=${endDate}`;
