@@ -24,8 +24,11 @@ export default function EmployeeAttendance() {
   const [cameraActive, setCameraActive] = useState(true);
   const [attendanceToday, setAttendanceToday] = useState(null);
 
+  const [checkingIn, setCheckingIn] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
+
   // =====================================
-  // Fetch Attendance
+  // Fetch Today's Attendance
   // =====================================
 
   useEffect(() => {
@@ -35,7 +38,6 @@ export default function EmployeeAttendance() {
       if (!employee) return;
 
       const data = await fetchTodayAttendance(employee.id, token);
-
       setAttendanceToday(data);
 
     };
@@ -55,9 +57,7 @@ export default function EmployeeAttendance() {
       const stream = webcamRef.current.video?.srcObject;
 
       if (stream) {
-
         stream.getTracks().forEach(track => track.stop());
-
       }
 
     }
@@ -71,8 +71,6 @@ export default function EmployeeAttendance() {
     return () => stopCamera();
 
   }, []);
-
-  // Stop camera when tab hidden
 
   useEffect(() => {
 
@@ -99,7 +97,7 @@ export default function EmployeeAttendance() {
   }, []);
 
   // =====================================
-  // Get Location
+  // Get Exact Location (Latitude + Longitude)
   // =====================================
 
   useEffect(() => {
@@ -111,55 +109,117 @@ export default function EmployeeAttendance() {
 
     }
 
-    navigator.geolocation.getCurrentPosition(
+navigator.geolocation.getCurrentPosition(
+  async (position) => {
 
-      async (position) => {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
 
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
+    console.log("Latitude:", lat);
+    console.log("Longitude:", lon);
+    console.log("Accuracy:", position.coords.accuracy);
 
-        try {
+    try {
 
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`
-          );
-
-          const data = await response.json();
-
-          let place =
-            data.name ||
-            data.address?.building ||
-            data.address?.amenity ||
-            data.display_name;
-
-          if (place && place.includes(",")) {
-            place = place.split(",")[0];
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`,
+        {
+          headers: {
+            "User-Agent": "employee-attendance-app"
           }
-
-          setLocationName(place || "Exact location not found");
-
-        } catch {
-
-          setLocationName("Unable to fetch location");
-
         }
+      );
 
-      },
+      const data = await response.json();
 
-      () => {
-        setLocationName("Location permission denied");
-      }
+      const shortLocation = data.display_name
+        ?.split(",")
+        .slice(0,4)
+        .join(",");
 
-    );
+      setLocationName(shortLocation || "Exact location not found");
+
+    } catch {
+
+      setLocationName("Unable to fetch location");
+
+    }
+
+  },
+  () => {
+    setLocationName("Location permission denied");
+  },
+  {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
+  }
+);
 
   }, []);
 
   // =====================================
-  // Attendance Button States
+  // Attendance Button State
   // =====================================
 
   const { alreadyCheckedIn, alreadyCheckedOut } =
     getAttendanceStatus(attendanceToday);
+
+  // =====================================
+  // Check In
+  // =====================================
+
+  const onCheckIn = async () => {
+
+    if (checkingIn) return;
+
+    setCheckingIn(true);
+
+    try {
+
+      await handleCheckIn(
+        webcamRef,
+        employee,
+        locationName,
+        token,
+        setAttendanceToday
+      );
+
+    } finally {
+
+      setCheckingIn(false);
+
+    }
+
+  };
+
+  // =====================================
+  // Check Out
+  // =====================================
+
+  const onCheckOut = async () => {
+
+    if (checkingOut) return;
+
+    setCheckingOut(true);
+
+    try {
+
+      await handleCheckOut(
+        webcamRef,
+        employee,
+        locationName,
+        token,
+        setAttendanceToday
+      );
+
+    } finally {
+
+      setCheckingOut(false);
+
+    }
+
+  };
 
   // =====================================
   // Reports Navigation
@@ -224,22 +284,16 @@ export default function EmployeeAttendance() {
 
         <button
           className="checkin-btn"
-          disabled={alreadyCheckedIn}
-          onClick={() =>
-            handleCheckIn(
-              webcamRef,
-              employee,
-              locationName,
-              token,
-              setAttendanceToday
-            )
-          }
+          disabled={alreadyCheckedIn || checkingIn}
+          onClick={onCheckIn}
         >
 
           <LogIn size={18}/>
 
-          {alreadyCheckedIn
-            ? `Checked In at ${formatIST(attendanceToday.check_in_time)}`
+          {checkingIn
+            ? "Checking In..."
+            : alreadyCheckedIn
+            ? `Checked In at ${formatIST(attendanceToday?.check_in_time)}`
             : "Login / Check In"}
 
         </button>
@@ -248,22 +302,16 @@ export default function EmployeeAttendance() {
 
         <button
           className="checkout-btn"
-          disabled={!alreadyCheckedIn || alreadyCheckedOut}
-          onClick={() =>
-            handleCheckOut(
-              webcamRef,
-              employee,
-              locationName,
-              token,
-              setAttendanceToday
-            )
-          }
+          disabled={!alreadyCheckedIn || alreadyCheckedOut || checkingOut}
+          onClick={onCheckOut}
         >
 
           <LogOut size={18}/>
 
-          {alreadyCheckedOut
-            ? `Checked Out at ${formatIST(attendanceToday.check_out_time)}`
+          {checkingOut
+            ? "Checking Out..."
+            : alreadyCheckedOut
+            ? `Checked Out at ${formatIST(attendanceToday?.check_out_time)}`
             : "Logout / Check Out"}
 
         </button>

@@ -36,15 +36,24 @@ export const getAttendanceStatus = (attendanceToday) => {
 
 
 // ===============================
-// Convert Base64 → File
+// SAFE Base64 → File Conversion
 // ===============================
 
-const base64ToFile = async (base64, filename) => {
+const base64ToFile = (base64, filename) => {
 
-  const res = await fetch(base64);
-  const blob = await res.blob();
+  const arr = base64.split(",");
+  const mime = arr[0].match(/:(.*?);/)[1];
 
-  return new File([blob], filename, { type: "image/jpeg" });
+  const bstr = atob(arr[1]);
+  const n = bstr.length;
+
+  const u8arr = new Uint8Array(n);
+
+  for (let i = 0; i < n; i++) {
+    u8arr[i] = bstr.charCodeAt(i);
+  }
+
+  return new File([u8arr], filename, { type: mime });
 
 };
 
@@ -63,6 +72,11 @@ export const handleCheckIn = async (
 
   try {
 
+    if (!webcamRef.current) {
+      alert("Camera not ready");
+      return;
+    }
+
     const imageSrc = webcamRef.current.getScreenshot();
 
     if (!imageSrc) {
@@ -70,7 +84,7 @@ export const handleCheckIn = async (
       return;
     }
 
-    const imageFile = await base64ToFile(imageSrc, "checkin.jpg");
+    const imageFile = base64ToFile(imageSrc, "checkin.jpg");
 
     const formData = new FormData();
 
@@ -89,18 +103,26 @@ export const handleCheckIn = async (
       }
     );
 
-    const data = await response.json();
-
     if (!response.ok) {
-      alert("Check-in failed");
+
+      const err = await response.json();
+
+      console.error("Check-in error:", err);
+
+      alert(err.detail || "Check-in failed");
+
       return;
+
     }
+
+    const data = await response.json();
 
     setAttendanceToday(data);
 
   } catch (error) {
 
-    console.error(error);
+    console.error("Check-in error:", error);
+
     alert("Check-in error");
 
   }
@@ -122,6 +144,11 @@ export const handleCheckOut = async (
 
   try {
 
+    if (!webcamRef.current) {
+      alert("Camera not ready");
+      return;
+    }
+
     const imageSrc = webcamRef.current.getScreenshot();
 
     if (!imageSrc) {
@@ -129,7 +156,7 @@ export const handleCheckOut = async (
       return;
     }
 
-    const imageFile = await base64ToFile(imageSrc, "checkout.jpg");
+    const imageFile = base64ToFile(imageSrc, "checkout.jpg");
 
     const formData = new FormData();
 
@@ -148,18 +175,26 @@ export const handleCheckOut = async (
       }
     );
 
-    const data = await response.json();
-
     if (!response.ok) {
-      alert("Check-out failed");
+
+      const err = await response.json();
+
+      console.error("Check-out error:", err);
+
+      alert(err.detail || "Check-out failed");
+
       return;
+
     }
+
+    const data = await response.json();
 
     setAttendanceToday(data);
 
   } catch (error) {
 
-    console.error(error);
+    console.error("Check-out error:", error);
+
     alert("Check-out error");
 
   }
