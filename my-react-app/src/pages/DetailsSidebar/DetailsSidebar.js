@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import "./DetailsSidebar.css";
 import { useNavigate } from "react-router-dom";
 import {
@@ -47,7 +47,7 @@ const DetailsSidebar = ({ employee, onClose }) => {
   // CALCULATE HOURS
   // ================================
 
-  const calculateHours = () => {
+  const calculateHours = useCallback(() => {
 
     if (!employee?.check_in_time) return "0.0";
 
@@ -62,7 +62,8 @@ const DetailsSidebar = ({ employee, onClose }) => {
     const hours = diff / (1000 * 60 * 60);
 
     return hours.toFixed(1);
-  };
+
+  }, [employee]);
 
   // ================================
   // LIVE HOURS UPDATE
@@ -82,7 +83,7 @@ const DetailsSidebar = ({ employee, onClose }) => {
 
     return () => clearInterval(interval);
 
-  }, [employee]);
+  }, [employee, calculateHours]);
 
   // ================================
   // VIEW REPORT
@@ -92,7 +93,6 @@ const DetailsSidebar = ({ employee, onClose }) => {
     navigate(`/attendance-report/${employee.employee_id}`);
   };
 
-  // AFTER HOOKS
   if (!employee) return null;
 
   return (
@@ -107,12 +107,14 @@ const DetailsSidebar = ({ employee, onClose }) => {
         <div className="details-header">
 
           <div className="employee-info">
+
             <img src={employee.user_image} alt="employee" />
 
             <div>
               <h2>{employee.user_name}</h2>
               <p>{employee.user_role}</p>
             </div>
+
           </div>
 
         </div>
