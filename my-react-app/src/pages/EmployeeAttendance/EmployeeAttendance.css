@@ -1,0 +1,180 @@
+
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+}
+
+.attendance-page {
+
+  min-height: 100vh;
+  background: #cfdad3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.attendance-card {
+  width: 420px;
+      margin-top: 3vh;
+    margin-bottom: 3vh;
+  background: #f2f5f2;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.title {
+  text-align: center;
+  font-weight: 600;
+  color: #1c3d2c;
+  margin-bottom: 25px;
+}
+
+/* Location Box */
+
+.location-box {
+  background: #e5ebe7;
+  padding: 18px;
+  border-radius: 14px;
+  margin-bottom: 25px;
+}
+
+.location-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2f8f4e;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.location-box p {
+  margin: 4px 0;
+  color: #344a3f;
+}
+
+/* Camera */
+
+.camera-preview {
+  border: 2px dashed #b8c6bd;
+  border-radius: 14px;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #7c8e84;
+  margin-bottom: 15px;
+}
+
+.camera-preview p {
+  margin-top: 10px;
+}
+
+/* Buttons */
+
+button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: 0.2s ease;
+}
+
+.camera-btn {
+  background: #d8e1db;
+}
+
+.camera-btn:hover {
+  background: #cdd7d1;
+}
+
+.checkin-btn {
+  background: #3aa45f;
+  color: white;
+}
+
+.checkin-btn:hover {
+  background: #2f8d50;
+}
+
+.checkout-btn {
+  background: #e23a3a;
+  color: white;
+}
+
+.checkout-btn:hover {
+  background: #cc2d2d;
+}
+
+.reports-btn {
+  background: #d8e1db;
+}
+
+.reports-btn:hover {
+  background: #cdd7d1;
+}
+
+/* ================================
+   MOBILE RESPONSIVE
+================================ */
+
+@media (max-width: 600px) {
+
+  .attendance-page {
+    padding: 15px;
+    align-items: flex-start;
+  }
+
+  .attendance-card {
+    width: 100%;
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  .location-box {
+    padding: 14px;
+  }
+
+  .location-title {
+    font-size: 15px;
+  }
+
+  .location-box p {
+    font-size: 14px;
+  }
+
+  .camera-preview {
+    height: 150px;
+  }
+
+  .camera-preview p {
+    font-size: 14px;
+  }
+
+  button {
+    padding: 13px;
+    font-size: 14px;
+  }
+
+}
+.checkin-btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+
