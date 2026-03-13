@@ -1,0 +1,87 @@
+.employee-container {
+  padding: 30px;
+  background: #f1fff4;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+h2 {
+  color: #1b8f3c;
+}
+
+.add-btn {
+  background: #34c759;
+  color: white;
+  border: none;
+  width: 200px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.add-btn:hover {
+  background: #28a745;
+}
+
+.employee-form {
+  background: #e8fff0;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 10px;
+
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.employee-form input {
+  padding: 10px;
+  border: 1px solid #b7e4c7;
+  border-radius: 6px;
+}
+
+.submit-btn {
+  grid-column: span 2;
+  background: #2ecc71;
+  color: white;
+  border: none;
+  padding: 12px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.submit-btn:hover {
+  background: #27ae60;
+}
+
+.employee-table {
+  width: 100%;
+  margin-top: 30px;
+  border-collapse: collapse;
+  background: white;
+}
+
+.employee-table th {
+  background: #b7e4c7;
+  padding: 12px;
+  text-align: left;
+}
+
+.employee-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e0f2e9;
+}
+
+.employee-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}

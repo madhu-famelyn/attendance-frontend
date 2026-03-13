@@ -9,6 +9,7 @@ import EmployeeLogin from "./pages/Employee/Employee";
 import MainDashboard from "./pages/Dashboard/AttendanceDashboard";
 import AttendanceReport from "./pages/Reports/Reports";
 import EmployeeAttendance from "./pages/EmployeeAttendance/EmployeeAttendance";
+import EmployeeManager from "./pages/EmployeeManager/EmployeeManager";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           path="/attendance-report/:employee_id"
           element={<AttendanceReport />}
         />
+        <Route path="/management" element={<EmployeeManager />} />
 
           </Routes>
 

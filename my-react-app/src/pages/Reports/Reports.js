@@ -13,13 +13,23 @@ const AttendanceReport = () => {
   const [rangeType, setRangeType] = useState("month");
 
   // ===============================
-  // TIME FORMAT
+  // CONVERT UTC → IST
+  // ===============================
+
+  const convertUTCtoIST = (time) => {
+    if (!time) return null;
+    return new Date(time + "Z");
+  };
+
+  // ===============================
+  // FORMAT TIME
   // ===============================
 
   const formatIST = (time) => {
+
     if (!time) return "-";
 
-    const date = new Date(time + "Z");
+    const date = convertUTCtoIST(time);
 
     return date.toLocaleTimeString("en-IN", {
       timeZone: "Asia/Kolkata",
@@ -27,28 +37,39 @@ const AttendanceReport = () => {
       minute: "2-digit",
       hour12: true
     });
+
   };
 
   const formatDateIST = (time) => {
+
     if (!time) return "-";
 
-    const date = new Date(time + "Z");
+    const date = convertUTCtoIST(time);
 
     return date.toLocaleDateString("en-IN", {
       timeZone: "Asia/Kolkata"
     });
+
   };
 
   // ===============================
-  // WORKING HOURS
+  // WORKING HOURS (LIVE)
   // ===============================
 
   const calculateHours = (checkIn, checkOut) => {
 
-    if (!checkIn || !checkOut) return "-";
+    if (!checkIn) return "-";
 
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
+    const start = convertUTCtoIST(checkIn);
+
+    let end;
+
+    if (checkOut) {
+      end = convertUTCtoIST(checkOut);
+    } else {
+      // USER NOT LOGGED OUT → USE CURRENT TIME
+      end = new Date();
+    }
 
     const diff = end - start;
 
@@ -90,7 +111,7 @@ const AttendanceReport = () => {
   }, [fetchAttendance]);
 
   // ===============================
-  // DATE PRESET
+  // DATE PRESETS
   // ===============================
 
   const applyPreset = (type) => {
@@ -126,7 +147,6 @@ const AttendanceReport = () => {
 
   };
 
-  // Initialize default range
   useEffect(() => {
     applyPreset("month");
   }, [employee_id]);
@@ -138,15 +158,22 @@ const AttendanceReport = () => {
   const exportToExcel = () => {
 
     const exportData = attendance.map((item) => ({
+
       Date: formatDateIST(item.check_in_time),
+
       "Check In Time": formatIST(item.check_in_time),
+
       "Check In Location": item.check_in_gps || "-",
+
       "Check Out Time": formatIST(item.check_out_time),
+
       "Check Out Location": item.check_out_gps || "-",
+
       "Working Hours": calculateHours(
         item.check_in_time,
         item.check_out_time
       )
+
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
@@ -186,9 +213,11 @@ const AttendanceReport = () => {
       <div className="employee-select">
 
         {attendance.length > 0 && (
+
           <div className="employee-pill">
             {attendance[0].user_name}
           </div>
+
         )}
 
       </div>
@@ -227,7 +256,7 @@ const AttendanceReport = () => {
 
       </div>
 
-      {/* CUSTOM DATE RANGE */}
+      {/* CUSTOM RANGE */}
 
       {rangeType === "custom" && (
 
@@ -283,9 +312,13 @@ const AttendanceReport = () => {
                 <tr key={item.id}>
 
                   <td>{formatDateIST(item.check_in_time)}</td>
+
                   <td>{formatIST(item.check_in_time)}</td>
+
                   <td>{item.check_in_gps || "-"}</td>
+
                   <td>{formatIST(item.check_out_time)}</td>
+
                   <td>{item.check_out_gps || "-"}</td>
 
                   <td>

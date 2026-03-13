@@ -2,8 +2,11 @@ import React, { useEffect, useState, useCallback } from "react";
 import "./Dashboard.css";
 import DetailsSidebar from "../DetailsSidebar/DetailsSidebar";
 import { FaUsers, FaClock } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const AttendanceDashboard = () => {
+
+  const navigate = useNavigate();
 
   const [attendanceData, setAttendanceData] = useState([]);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -96,8 +99,22 @@ const AttendanceDashboard = () => {
 
     <div className="att-dashboard-container">
 
-      <h1 className="att-dashboard-title">Dashboard</h1>
-      <p className="att-dashboard-subtitle">Today's attendance overview</p>
+      {/* Header */}
+      <div className="att-dashboard-header">
+
+        <div>
+          <h1 className="att-dashboard-title">Dashboard</h1>
+          <p className="att-dashboard-subtitle">Today's attendance overview</p>
+        </div>
+
+        <button
+          className="manage-users-btn"
+          onClick={() => navigate("/management")}
+        >
+          Manage Users
+        </button>
+
+      </div>
 
       <div className="att-dashboard-cards">
 
@@ -179,6 +196,7 @@ const AttendanceDashboard = () => {
       )}
 
     </div>
+
   );
 
 };
