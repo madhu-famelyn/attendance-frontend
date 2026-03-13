@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./EmployeeManager.css";
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "https://attendance-backend-long-meadow-1623.fly.dev";
 
 export default function EmployeeManager() {
 
