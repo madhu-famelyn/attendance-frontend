@@ -128,7 +128,7 @@ const AttendanceDashboard = () => {
           </div>
         </div>
 
-        <div className="att-dashboard-card">
+        {/* <div className="att-dashboard-card">
           <div className="att-dashboard-icon-orange">
             <FaClock />
           </div>
@@ -136,7 +136,7 @@ const AttendanceDashboard = () => {
             <h2>{totalWorkingHours}h</h2>
             <p>Total Working Hours</p>
           </div>
-        </div>
+        </div> */}
 
       </div>
 
