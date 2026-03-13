@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./EmployeeManager.css";
 
 const API_BASE = "https://attendance-backend-long-meadow-1623.fly.dev";
@@ -7,6 +8,7 @@ export default function EmployeeManager() {
 
   const [employees, setEmployees] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -20,7 +22,10 @@ export default function EmployeeManager() {
     image: null
   });
 
-  // Fetch employees
+  // ===============================
+  // FETCH EMPLOYEES
+  // ===============================
+
   const fetchEmployees = async () => {
     try {
       const res = await fetch(`${API_BASE}/employee/all`);
@@ -35,8 +40,12 @@ export default function EmployeeManager() {
     fetchEmployees();
   }, []);
 
-  // Handle form input
+  // ===============================
+  // HANDLE INPUT
+  // ===============================
+
   const handleChange = (e) => {
+
     const { name, value, files } = e.target;
 
     if (files) {
@@ -44,10 +53,15 @@ export default function EmployeeManager() {
     } else {
       setFormData({ ...formData, [name]: value });
     }
+
   };
 
-  // Submit employee
+  // ===============================
+  // REGISTER EMPLOYEE
+  // ===============================
+
   const handleSubmit = async (e) => {
+
     e.preventDefault();
 
     const data = new FormData();
@@ -59,28 +73,50 @@ export default function EmployeeManager() {
     });
 
     try {
+
       const res = await fetch(`${API_BASE}/employee/register`, {
         method: "POST",
         body: data
       });
 
       if (res.ok) {
+
         alert("Employee created successfully");
+
         setShowForm(false);
+
         fetchEmployees();
+
       } else {
+
         alert("Failed to create employee");
+
       }
 
     } catch (error) {
+
       console.error(error);
+
     }
+
+  };
+
+  // ===============================
+  // NAVIGATE TO REPORT
+  // ===============================
+
+  const openEmployeeReport = (employeeId) => {
+
+    navigate(`/attendance-report/${employeeId}`);
+
   };
 
   return (
+
     <div className="employee-container">
 
       <div className="header">
+
         <h2>Employee Management</h2>
 
         <button
@@ -89,82 +125,151 @@ export default function EmployeeManager() {
         >
           {showForm ? "Close Form" : "Add Employee"}
         </button>
+
       </div>
 
-      {/* FORM */}
+      {/* ===============================
+          EMPLOYEE FORM
+      =============================== */}
 
       {showForm && (
+
         <form className="employee-form" onSubmit={handleSubmit}>
 
-          <input name="name" placeholder="Name" onChange={handleChange} required />
+          <input
+            name="name"
+            placeholder="Name"
+            onChange={handleChange}
+            required
+          />
 
-          <input name="email" placeholder="Email" onChange={handleChange} required />
+          <input
+            name="email"
+            placeholder="Email"
+            onChange={handleChange}
+            required
+          />
 
-          <input name="password" type="password" placeholder="Password" onChange={handleChange} required />
+          <input
+            name="password"
+            type="password"
+            placeholder="Password"
+            onChange={handleChange}
+            required
+          />
 
-          <input name="role" placeholder="Role" onChange={handleChange} required />
+          <input
+            name="role"
+            placeholder="Role"
+            onChange={handleChange}
+            required
+          />
 
-          <input name="expected_entry_time" type="time" onChange={handleChange} required />
+          <input
+            name="expected_entry_time"
+            type="time"
+            onChange={handleChange}
+            required
+          />
 
-          <input name="expected_exit_time" type="time" onChange={handleChange} />
+          <input
+            name="expected_exit_time"
+            type="time"
+            onChange={handleChange}
+          />
 
-          <input name="office_latitude" type="number" step="any" placeholder="Office Latitude" onChange={handleChange} required />
+          <input
+            name="office_latitude"
+            type="number"
+            step="any"
+            placeholder="Office Latitude"
+            onChange={handleChange}
+            required
+          />
 
-          <input name="office_longitude" type="number" step="any" placeholder="Office Longitude" onChange={handleChange} required />
+          <input
+            name="office_longitude"
+            type="number"
+            step="any"
+            placeholder="Office Longitude"
+            onChange={handleChange}
+            required
+          />
 
-          <input name="image" type="file" onChange={handleChange} />
+          <input
+            name="image"
+            type="file"
+            onChange={handleChange}
+          />
 
           <button type="submit" className="submit-btn">
             Register Employee
           </button>
 
         </form>
+
       )}
 
-      {/* TABLE */}
+      {/* ===============================
+          EMPLOYEE TABLE
+      =============================== */}
 
-      <table className="employee-table">
+      <div className="table-wrapper">
 
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Entry Time</th>
-            <th>Exit Time</th>
-          </tr>
-        </thead>
+        <table className="employee-table">
 
-        <tbody>
-
-          {employees.map((emp) => (
-            <tr key={emp.id}>
-              <td>{emp.id}</td>
-
-              <td>
-                {emp.image && (
-                  <img
-                    src={emp.image}
-                    alt="employee"
-                    className="employee-img"
-                  />
-                )}
-              </td>
-
-              <td>{emp.name}</td>
-              <td>{emp.email}</td>
-              <td>{emp.role}</td>
-              <td>{emp.expected_entry_time}</td>
-              <td>{emp.expected_exit_time}</td>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Entry Time</th>
+              <th>Exit Time</th>
             </tr>
-          ))}
+          </thead>
 
-        </tbody>
+          <tbody>
 
-      </table>
+            {employees.map((emp) => (
+
+              <tr
+                key={emp.id}
+                onClick={() => openEmployeeReport(emp.id)}
+                className="clickable-row"
+              >
+
+                <td>{emp.id}</td>
+
+                <td>
+                  {emp.image && (
+                    <img
+                      src={emp.image}
+                      alt="employee"
+                      className="employee-img"
+                    />
+                  )}
+                </td>
+
+                <td>{emp.name}</td>
+                <td>{emp.email}</td>
+                <td>{emp.role}</td>
+                <td>{emp.expected_entry_time}</td>
+                <td>{emp.expected_exit_time}</td>
+
+              </tr>
+
+            ))}
+
+          </tbody>
+
+        </table>
+
+      </div>
 
     </div>
+
   );
+
 }
